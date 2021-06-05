@@ -1,0 +1,47 @@
+Configuration:
+  Properties:
+    Property:
+      - name: PROJECT_PACKAGE # 日志默认拦截项目包名
+        value: org.example
+      - name: PROJECT_LOG_LEVEL # 项目日志级别
+        value: debug
+      - name: FILENAME # 当前日志文件路径
+        value: ./logs/app.log
+      - name: ARCHIVE_FILE_PATTERN # 归档日志文件模式
+        value: "./logs/archives/app-%d{yyyy-MM-dd}-%i.log.gz"
+      - name: PATTERN
+        value: "    [%style{%d{yyyy-MM-dd HH:mm:ss.SSS}}{black} %highlight{%-5level}] [%-36X{TRACE_ID}] [%11X{USER_ID}] [%t] [%C{10}]%n%msg%n"
+
+  status: warn # log4j 内部日志级别
+  monitorInterval: 0 # log4j2 自动检测配置文件时间 (单位: 秒) 0 为不检测
+  Appenders:
+    Console:
+      - name: STDOUT
+        PatternLayout:
+          Pattern: ${PATTERN}
+          disableAnsi: false
+    RollingFile:
+      name: FILE
+      fileName: ${FILENAME}
+      filePattern: ${ARCHIVE_FILE_PATTERN}
+      PatternLayout:
+        Pattern: ${PATTERN}
+      Policies:
+        TimeBasedTriggeringPolicy: # 基于时间生成日志文件
+          modulate: true
+          interval: 1 # ARCHIVE_FILE_PATTERN 中的最小单位
+        SizeBasedTriggeringPolicy:
+          size: 1GB
+  Loggers:
+    Logger:
+      - name: ${PROJECT_PACKAGE} # looger 或者 包名
+        level: ${PROJECT_LOG_LEVEL}
+        additivity: false # 事件是否追加到上层 Logger
+        AppenderRef:
+          - ref: STDOUT
+          - ref: FILE
+    Root:
+      level: info
+      AppenderRef:
+        - ref: STDOUT
+        - ref: FILE
